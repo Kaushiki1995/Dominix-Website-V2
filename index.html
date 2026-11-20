@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dominix | A design-driven conglomerate</title>
+<meta name="description" content="Dominix is a design-driven conglomerate creating iconic infrastructure, impactful products and digital ecosystems, and scaling ground-breaking ventures.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gloock&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0b0b0c; --paper:#ffffff; --mist:#f4f3f0; --line:#e3e1dc; --muted:#6b6b6b;
+    --red:#ed1c24; --blue:#0088cb; --yellow:#ffcb05;
+    --serif:'Gloock',Georgia,serif; --sans:'Inter',system-ui,sans-serif;
+    --gutter:clamp(16px,5vw,64px); --max:1200px;
+  }
+  *{box-sizing:border-box;margin:0}
+  html{scroll-behavior:smooth}
+  body{font-family:var(--sans);color:var(--ink);background:var(--paper);line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:var(--max);margin:0 auto;padding:0 var(--gutter)}
+  h1,h2,h3{font-family:var(--serif);font-weight:400;line-height:1.08;letter-spacing:-.01em}
+  .eyebrow{font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:var(--muted)}
+  .btn{display:inline-flex;align-items:center;gap:.6rem;padding:.95rem 1.6rem;border-radius:999px;font-weight:500;font-size:.95rem;border:1px solid var(--ink);transition:.2s}
+  .btn.solid{background:var(--ink);color:#fff}
+  .btn.solid:hover{background:var(--red);border-color:var(--red)}
+  .btn.ghost:hover{background:var(--ink);color:#fff}
+
+  /* nav */
+  header{position:sticky;top:0;z-index:10;background:rgba(255,255,255,.88);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+  nav{display:flex;align-items:center;justify-content:space-between;height:68px}
+  .logo{font-family:var(--serif);font-size:1.5rem;display:flex;align-items:center;gap:.5rem}
+  .dots{display:flex;gap:3px}.dots i{width:8px;height:8px;border-radius:50%}
+  .dots i:nth-child(1){background:var(--red)}.dots i:nth-child(2){background:var(--blue)}.dots i:nth-child(3){background:var(--yellow)}
+  .links{display:flex;gap:2rem;font-size:.92rem}
+  .links a:hover{color:var(--red)}
+  .nav-cta{padding:.6rem 1.2rem;font-size:.88rem}
+  @media(max-width:760px){.links{display:none}}
+
+  /* hero */
+  .hero{padding:clamp(64px,12vw,160px) 0 clamp(48px,8vw,100px)}
+  .hero h1{font-size:clamp(2.8rem,8.5vw,7rem);max-width:15ch}
+  .hero h1 em{font-style:normal;background:linear-gradient(90deg,var(--red),var(--blue));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero p{max-width:56ch;margin:2rem 0 2.4rem;font-size:clamp(1.05rem,1.6vw,1.25rem);color:#333}
+  .hero .actions{display:flex;gap:.8rem;flex-wrap:wrap}
+
+  /* stats */
+  .stats{border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .stats .wrap{display:grid;grid-template-columns:repeat(4,1fr)}
+  .stat{padding:2rem 0;border-right:1px solid var(--line);padding-left:1.5rem}
+  .stat:first-child{padding-left:0}.stat:last-child{border:0}
+  .stat b{display:block;font-family:var(--serif);font-weight:400;font-size:clamp(2rem,4vw,3.2rem);line-height:1}
+  .stat span{font-size:.85rem;color:var(--muted)}
+  @media(max-width:700px){.stats .wrap{grid-template-columns:1fr 1fr}.stat{border-right:0;padding-left:0;border-bottom:1px solid var(--line)}}
+
+  section{padding:clamp(64px,9vw,120px) 0}
+  .head{display:flex;justify-content:space-between;align-items:end;gap:2rem;flex-wrap:wrap;margin-bottom:3rem}
+  .head h2{font-size:clamp(2rem,4.5vw,3.4rem);max-width:18ch;margin-top:.8rem}
+  .head p{max-width:40ch;color:var(--muted)}
+
+  /* companies */
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1.25rem}
+  .card{position:relative;padding:2.2rem;border:1px solid var(--line);border-radius:20px;min-height:290px;display:flex;flex-direction:column;justify-content:space-between;background:#fff;transition:.25s;overflow:hidden}
+  .card::before{content:"";position:absolute;left:0;top:0;height:5px;width:100%;background:var(--c)}
+  .card:hover{transform:translateY(-4px);box-shadow:0 18px 40px -18px rgba(0,0,0,.25)}
+  .card .n{font-size:.78rem;color:var(--muted);letter-spacing:.1em}
+  .card h3{font-size:1.9rem;margin:.8rem 0 .7rem}
+  .card p{color:#444;max-width:38ch}
+  .card .go{margin-top:1.6rem;font-weight:500;font-size:.9rem}
+  .card:hover .go{color:var(--c)}
+  @media(max-width:760px){.grid{grid-template-columns:1fr}}
+
+  /* about */
+  .about{background:var(--ink);color:#fff}
+  .about .eyebrow{color:#9a9a9a}
+  .split{display:grid;grid-template-columns:1.1fr 1fr;gap:clamp(2rem,6vw,6rem);align-items:start}
+  .about h2{font-size:clamp(2rem,4.5vw,3.4rem);margin-top:.8rem}
+  .about p{color:#cfcfcf;margin-bottom:1.4rem}
+  .about .btn{border-color:#fff;color:#fff}.about .btn:hover{background:#fff;color:var(--ink)}
+  @media(max-width:800px){.split{grid-template-columns:1fr}}
+
+  /* work */
+  .work{display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem}
+  .proj{padding:1.8rem;background:var(--mist);border-radius:16px;display:flex;flex-direction:column;gap:.8rem}
+  .proj .tag{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;font-weight:600;color:var(--blue)}
+  .proj h3{font-size:1.45rem}
+  .proj p{font-size:.92rem;color:#444}
+  @media(max-width:900px){.work{grid-template-columns:1fr}}
+
+  /* offices */
+  .offices{display:grid;grid-template-columns:repeat(4,1fr);gap:1.25rem}
+  .office{border-top:2px solid var(--ink);padding-top:1rem}
+  .office h3{font-size:1.4rem}.office span{font-size:.88rem;color:var(--muted)}
+  @media(max-width:760px){.offices{grid-template-columns:1fr 1fr}}
+
+  /* cta */
+  .cta{background:linear-gradient(120deg,var(--red),#b3121a 55%,var(--blue));color:#fff;text-align:center;border-radius:28px;padding:clamp(48px,8vw,100px) var(--gutter)}
+  .cta h2{font-size:clamp(2.2rem,5.5vw,4.4rem);max-width:16ch;margin:0 auto 1rem}
+  .cta p{opacity:.9;max-width:46ch;margin:0 auto 2rem}
+  .cta .btn{background:#fff;color:var(--ink);border-color:#fff}.cta .btn:hover{background:var(--yellow);border-color:var(--yellow)}
+
+  footer{padding:3rem 0;border-top:1px solid var(--line);margin-top:clamp(64px,9vw,120px);font-size:.88rem;color:var(--muted)}
+  footer .wrap{display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+</style>
+</head>
+<body>
+
+<header>
+  <nav class="wrap">
+    <a class="logo" href="#top"><span class="dots"><i></i><i></i><i></i></span>Dominix</a>
+    <div class="links">
+      <a href="#companies">Group Companies</a>
+      <a href="#about">About</a>
+      <a href="#work">Work</a>
+      <a href="#offices">Offices</a>
+    </div>
+    <a class="btn solid nav-cta" href="#contact">Let's Create</a>
+  </nav>
+</header>
+
+<main id="top">
+  <div class="hero wrap">
+    <p class="eyebrow">Design-driven conglomerate</p>
+    <h1 style="margin-top:1.2rem">Design that builds <em>businesses</em>, places and brands.</h1>
+    <p>We create iconic infrastructure, impactful products and digital ecosystems, while crafting and scaling ground-breaking ventures.</p>
+    <div class="actions">
+      <a class="btn solid" href="#contact">Let's Create &rarr;</a>
+      <a class="btn ghost" href="#companies">Explore our companies</a>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="wrap">
+      <div class="stat"><b>4</b><span>Group companies</span></div>
+      <div class="stat"><b>3</b><span>Countries with offices</span></div>
+      <div class="stat"><b>7+</b><span>Countries with a channel presence</span></div>
+      <div class="stat"><b>1</b><span>Design-first philosophy</span></div>
+    </div>
+  </div>
+
+  <section id="companies">
+    <div class="wrap">
+      <div class="head">
+        <div><p class="eyebrow">Our Group Companies</p><h2>Four companies. One design mindset.</h2></div>
+        <p>Each company works independently, with shared design thinking at its core.</p>
+      </div>
+      <div class="grid">
+        <a class="card" href="#contact" style="--c:var(--red)">
+          <div><span class="n">01</span><h3>Dominix Experiences</h3><p>Designing and developing large-scale destinations and experiences.</p></div>
+          <span class="go">Mega projects &middot; Infrastructure &rarr;</span>
+        </a>
+        <a class="card" href="#contact" style="--c:var(--blue)">
+          <div><span class="n">02</span><h3>Dominix Design Studio</h3><p>Creating products people love, digital experiences people enjoy, and brands that stand out.</p></div>
+          <span class="go">Product &middot; Digital &middot; Brand &rarr;</span>
+        </a>
+        <a class="card" href="#contact" style="--c:var(--yellow)">
+          <div><span class="n">03</span><h3>Dominix Development</h3><p>Building resilient, future-ready residential spaces with thoughtful redevelopment and strong execution.</p></div>
+          <span class="go">Residential &middot; Redevelopment &rarr;</span>
+        </a>
+        <a class="card" href="#contact" style="--c:var(--ink)">
+          <div><span class="n">04</span><h3>Dominix IPs &amp; Ventures</h3><p>IP-driven incubation with design thinking at its core. We invest in ideas that can change the way people live.</p></div>
+          <span class="go">Ventures &middot; Incubation &rarr;</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="about" id="about">
+    <div class="wrap split">
+      <div>
+        <p class="eyebrow">Our Story</p>
+        <h2>Impact through design.</h2>
+      </div>
+      <div>
+        <p>Dominix was founded with a mission to create impact through design, driving business growth and meaningful change.</p>
+        <p>With offices in India, UAE and USA, and a channel presence in 7+ countries, we blend creativity, psychology and AI to craft experiences that create, transform and scale ventures.</p>
+        <p>We are an impact-driven group built on trust-based collaboration, bringing local insight together with a global perspective.</p>
+        <a class="btn" href="#contact">Work with us</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="work">
+    <div class="wrap">
+      <div class="head">
+        <div><p class="eyebrow">Selected work</p><h2>Brands and products we helped bring to life.</h2></div>
+      </div>
+      <div class="work">
+        <article class="proj"><span class="tag">Product &middot; Social impact</span><h3>Glovatrix</h3><p>A wearable that empowers the Deaf community. Honoured with the National Startup Award.</p></article>
+        <article class="proj"><span class="tag">Experience</span><h3>Shivsrushti Phase 2</h3><p>An immersive destination and branding that blends history with innovation.</p></article>
+        <article class="proj"><span class="tag">Brand &middot; Packaging</span><h3>Kiyoki Beer</h3><p>Strategy, branding and packaging for a bold new beer brand.</p></article>
+        <article class="proj"><span class="tag">Brand &middot; Digital</span><h3>Smartmark</h3><p>Complete brand experience, digital transformation and product line, now live in Singapore and the USA.</p></article>
+        <article class="proj"><span class="tag">Product</span><h3>Mobi L</h3><p>An advanced rehabilitation device with its app interfaces and full brand strategy.</p></article>
+        <article class="proj"><span class="tag">Education &middot; Digital</span><h3>Indira University</h3><p>Digital and brand transformation as Indira Institute of Design became a university.</p></article>
+      </div>
+    </div>
+  </section>
+
+  <section id="offices" style="padding-top:0">
+    <div class="wrap">
+      <div class="head">
+        <div><p class="eyebrow">Office locations</p><h2>Close to our clients, across time zones.</h2></div>
+      </div>
+      <div class="offices">
+        <div class="office"><h3>Pune</h3><span>India &middot; Head office</span></div>
+        <div class="office"><h3>Dubai</h3><span>United Arab Emirates</span></div>
+        <div class="office"><h3>New Jersey</h3><span>United States</span></div>
+        <div class="office"><h3>Tampa</h3><span>United States</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="contact" style="padding-top:0">
+    <div class="wrap">
+      <div class="cta">
+        <p class="eyebrow" style="color:#fff;opacity:.8">Let's start a conversation</p>
+        <h2 style="margin-top:1rem">Have an idea or project in mind?</h2>
+        <p>Share a few details and we'll connect you with the right Dominix team.</p>
+        <a class="btn" href="https://www.dominixglobal.com/contactstudio">Contact us &rarr;</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>&copy; 2026 Dominix. All rights reserved.</span>
+    <span>India &middot; UAE &middot; USA</span>
+  </div>
+</footer>
+
+</body>
+</html>
