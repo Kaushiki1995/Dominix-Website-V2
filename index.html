@@ -45,6 +45,40 @@
   .hero p{max-width:56ch;margin:2rem 0 2.4rem;font-size:clamp(1.05rem,1.6vw,1.25rem);color:#333}
   .hero .actions{display:flex;gap:.8rem;flex-wrap:wrap}
 
+  /* parallax banner */
+  .banner{height:500svh;position:relative;background:var(--ink)}
+  .stick{position:sticky;top:68px;height:calc(100svh - 68px);overflow:hidden;color:#fff}
+  .scene{position:absolute;inset:0;overflow:hidden;background:var(--ink)}
+  .scene .bg{position:absolute;inset:-10% 0;background-size:cover;background-position:center;will-change:transform;transform:scale(1.1)}
+  .scene::after{content:"";position:absolute;inset:0;background:
+      linear-gradient(90deg,rgba(0,0,0,.72) 0%,rgba(0,0,0,.35) 55%,rgba(0,0,0,.1) 100%),
+      linear-gradient(0deg,rgba(0,0,0,.55),transparent 40%)}
+  .ghost{position:absolute;right:calc(var(--gutter) - 1rem);bottom:-4vh;z-index:1;font-family:var(--serif);font-size:clamp(9rem,32vw,28rem);line-height:.8;color:transparent;-webkit-text-stroke:2px color-mix(in srgb,var(--accent) 80%,transparent);opacity:.7;will-change:transform;pointer-events:none}
+  .scene .copy{position:absolute;z-index:2;left:0;right:0;top:50%;margin:0 auto;transform:translateY(-50%);will-change:transform,opacity}
+  .copy>*{max-width:min(46rem,100%)}
+  .kicker{font-size:.8rem;letter-spacing:.16em;text-transform:uppercase;font-weight:600;display:flex;align-items:center;gap:.8rem;margin-bottom:1.4rem}
+  .kicker::before{content:"";width:2.4rem;height:3px;background:var(--accent)}
+  .scene h1,.scene h2{font-size:clamp(2.6rem,7vw,5.8rem);margin-bottom:1.4rem}
+  .lede{font-size:clamp(1rem,1.5vw,1.2rem);color:#e6e6e6;max-width:44ch;margin-bottom:2rem}
+  .btn.light{background:#fff;color:var(--ink);border-color:#fff}
+  .btn.light:hover{background:var(--accent);border-color:var(--accent);color:var(--ink)}
+  .scroll-hint{position:absolute;left:var(--gutter);bottom:1.6rem;z-index:2;font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;display:flex;align-items:center;gap:.8rem}
+  .scroll-hint::after{content:"";width:1px;height:42px;background:linear-gradient(#fff,transparent);animation:drip 1.8s ease-in-out infinite;transform-origin:top}
+  @keyframes drip{0%{transform:scaleY(0)}60%{transform:scaleY(1)}100%{transform:scaleY(1);opacity:0}}
+  .rail{position:absolute;right:clamp(10px,2vw,28px);top:50%;transform:translateY(-50%);z-index:5;display:flex;flex-direction:column;gap:.9rem;align-items:flex-end}
+  .rail button{all:unset;cursor:pointer;display:flex;align-items:center;gap:.7rem;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.6)}
+  .rail button span{opacity:0;transform:translateX(6px);transition:.25s;white-space:nowrap}
+  .rail button i{width:10px;height:10px;border-radius:50%;border:1.5px solid #fff;transition:.25s}
+  .rail button.on{color:#fff}.rail button.on i{background:#fff;transform:scale(1.35)}
+  .rail button.on span,.rail button:hover span,.rail button:focus-visible span{opacity:1;transform:none}
+  @media(max-width:700px){.rail button span{display:none}.ghost{opacity:.4}.scene::after{background:linear-gradient(0deg,rgba(0,0,0,.8),rgba(0,0,0,.35))}}
+  @media(prefers-reduced-motion:reduce){
+    .banner{height:auto}.stick{position:static;height:auto;overflow:visible}
+    .scene{position:relative;min-height:80svh}.scene .bg{transform:none;inset:0}
+    .scene .copy{position:relative;top:auto;transform:none;padding-top:18vh;padding-bottom:14vh}
+    .rail,.scroll-hint{display:none}
+  }
+
   /* stats */
   .stats{border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
   .stats .wrap{display:grid;grid-template-columns:repeat(4,1fr)}
@@ -120,13 +154,71 @@
 </header>
 
 <main id="top">
-  <div class="hero wrap">
-    <p class="eyebrow">Design-driven conglomerate</p>
-    <h1 style="margin-top:1.2rem">Design that builds <em>businesses</em>, places and brands.</h1>
-    <p>We create iconic infrastructure, impactful products and digital ecosystems, while crafting and scaling ground-breaking ventures.</p>
-    <div class="actions">
-      <a class="btn solid" href="#contact">Let's Create &rarr;</a>
-      <a class="btn ghost" href="#companies">Explore our companies</a>
+  <div class="banner" id="banner" aria-label="Dominix specialities">
+    <div class="stick">
+      <article class="scene" style="--accent:var(--yellow)">
+        <div class="bg" style="background-image:url(assets/intro.jpg)"></div>
+        <div class="ghost">D</div>
+        <div class="copy wrap">
+          <p class="kicker">Design-driven conglomerate</p>
+          <h1>Design that builds businesses, places and brands.</h1>
+          <p class="lede">We create iconic infrastructure, impactful products and digital ecosystems, while crafting and scaling ground-breaking ventures.</p>
+          <div class="actions"><a class="btn light" href="#contact">Let's Create &rarr;</a></div>
+        </div>
+        <div class="scroll-hint">Scroll</div>
+      </article>
+
+      <article class="scene" style="--accent:var(--red)">
+        <div class="bg" style="background-image:url(assets/mega-projects.jpg)"></div>
+        <div class="ghost">01</div>
+        <div class="copy wrap">
+          <p class="kicker">01 &middot; Mega Projects</p>
+          <h2>Destinations at the scale of cities.</h2>
+          <p class="lede">Design and development of large-scale destinations and experiences.</p>
+          <div class="actions"><a class="btn light" href="#companies">Dominix Experiences &rarr;</a></div>
+        </div>
+      </article>
+
+      <article class="scene" style="--accent:var(--blue)">
+        <div class="bg" style="background-image:url(assets/design-studio.jpg)"></div>
+        <div class="ghost">02</div>
+        <div class="copy wrap">
+          <p class="kicker">02 &middot; Design Studio</p>
+          <h2>Products, interfaces and brands people love.</h2>
+          <p class="lede">Industrial design, UI/UX and brand strategy for clear positioning and scalable products.</p>
+          <div class="actions"><a class="btn light" href="#companies">Dominix Design Studio &rarr;</a></div>
+        </div>
+      </article>
+
+      <article class="scene" style="--accent:var(--yellow)">
+        <div class="bg" style="background-image:url(assets/infrastructure.jpg)"></div>
+        <div class="ghost">03</div>
+        <div class="copy wrap">
+          <p class="kicker">03 &middot; Infrastructure</p>
+          <h2>Built to last, designed to inspire.</h2>
+          <p class="lede">Iconic infrastructure shaped by design thinking, from first sketch to final execution.</p>
+          <div class="actions"><a class="btn light" href="#companies">Dominix Development &rarr;</a></div>
+        </div>
+      </article>
+
+      <article class="scene" style="--accent:#fff">
+        <div class="bg" style="background-image:url(assets/ips-ventures.jpg)"></div>
+        <div class="ghost">04</div>
+        <div class="copy wrap">
+          <p class="kicker">04 &middot; IPs &amp; Ventures</p>
+          <h2>Ideas that change how people live.</h2>
+          <p class="lede">IP-driven incubation with design thinking at its core.</p>
+          <div class="actions"><a class="btn light" href="#companies">Dominix IPs &amp; Ventures &rarr;</a></div>
+        </div>
+      </article>
+
+      <nav class="rail" aria-label="Specialities">
+        <button type="button" data-i="0"><i></i><span>Intro</span></button>
+        <button type="button" data-i="1"><i></i><span>Mega Projects</span></button>
+        <button type="button" data-i="2"><i></i><span>Design Studio</span></button>
+        <button type="button" data-i="3"><i></i><span>Infrastructure</span></button>
+        <button type="button" data-i="4"><i></i><span>IPs &amp; Ventures</span></button>
+      </nav>
     </div>
   </div>
 
@@ -230,5 +322,49 @@
   </div>
 </footer>
 
+<script>
+(function(){
+  var banner=document.getElementById('banner');
+  if(!banner||window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  var stick=banner.querySelector('.stick'),
+      scenes=[].slice.call(banner.querySelectorAll('.scene')),
+      dots=[].slice.call(banner.querySelectorAll('.rail button')),
+      N=scenes.length,ticking=false;
+  var clamp=function(v,a,b){return Math.min(Math.max(v,a),b)};
+
+  function render(){
+    ticking=false;
+    var max=banner.offsetHeight-stick.offsetHeight;
+    var y=clamp(-banner.getBoundingClientRect().top,0,max);
+    var p=max>0?y/max*(N-1):0;
+    scenes.forEach(function(s,i){
+      var reveal=i===0?1:clamp(p-(i-1),0,1);   /* 0 -> 1 as the scene slides in */
+      var leave=clamp(p-i,0,1);                /* 0 -> 1 as the next scene covers it */
+      var d=clamp(i-p,-1,1);
+      s.style.clipPath='inset('+((1-reveal)*100)+'% 0 0 0)';
+      s.style.visibility=(reveal<=0)?'hidden':'visible';
+      s.children[0].style.transform='translate3d(0,'+(d*9)+'%,0) scale(1.1)';        /* background: slow layer */
+      s.children[1].style.transform='translate3d(0,'+(d*-30)+'vh,0)';                /* outline number: fast layer */
+      var copy=s.querySelector('.copy');
+      var a=i===0?1:clamp((reveal-.45)/.55,0,1);
+      copy.style.opacity=a*(1-clamp(leave*1.7,0,1));
+      copy.style.transform='translateY(calc(-50% + '+((1-reveal)*70-leave*90)+'px))';
+    });
+    var on=Math.round(p);
+    dots.forEach(function(b,i){b.classList.toggle('on',i===on)});
+  }
+  function queue(){if(!ticking){ticking=true;requestAnimationFrame(render)}}
+  addEventListener('scroll',queue,{passive:true});
+  addEventListener('resize',queue);
+  dots.forEach(function(b){
+    b.addEventListener('click',function(){
+      var max=banner.offsetHeight-stick.offsetHeight;
+      var top=banner.getBoundingClientRect().top+scrollY;
+      scrollTo({top:top+max*(+b.dataset.i/(N-1)),behavior:'smooth'});
+    });
+  });
+  render();
+})();
+</script>
 </body>
 </html>
