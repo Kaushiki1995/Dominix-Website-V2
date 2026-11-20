@@ -71,15 +71,20 @@
 
   /* stage 1: question */
   /* stage 1 is split into two doors that slide apart to reveal the first speciality */
-  .intro{position:absolute;inset:0;z-index:5}
-  .door{position:absolute;top:0;bottom:0;width:50%;overflow:hidden;will-change:transform}
-  .door.l{left:0}.door.r{right:0}
-  .door .inner{position:absolute;top:0;width:200%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 var(--gutter);gap:1.6rem;background:
+  /* While closed, one whole intro (.solo) is shown: no seam, one real button.
+     The two doors are identical copies that appear only while it slides open. */
+  .intro{position:absolute;inset:0;z-index:5;--intro-bg:
       radial-gradient(40% 45% at 25% 30%,rgba(237,28,36,.55),transparent 70%),
       radial-gradient(45% 50% at 78% 25%,rgba(0,136,203,.55),transparent 70%),
       radial-gradient(50% 45% at 55% 85%,rgba(255,203,5,.40),transparent 70%),#141218}
+  .solo,.door .inner{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 var(--gutter);gap:1.6rem;background:var(--intro-bg)}
+  .solo{position:absolute;inset:0}
+  .door{position:absolute;top:0;bottom:0;width:50%;overflow:hidden;will-change:transform;visibility:hidden;pointer-events:none}
+  .door.l{left:0}.door.r{right:0}
+  .door .inner{position:absolute;top:0;width:200%;height:100%}
   .door.l .inner{left:0}.door.r .inner{right:0}
-  .door h1,.door .h1{font-family:var(--serif);font-weight:700;font-size:clamp(30px,4.2vw,60px);line-height:1.1;letter-spacing:-.01em}
+  span.enter{display:inline-flex;align-items:center}
+  .intro h1,.intro .h1{font-family:var(--serif);font-weight:700;font-size:clamp(30px,4.2vw,60px);line-height:1.1;letter-spacing:-.01em}
   .enter{height:54px;padding:0 2.2rem;border-radius:999px;border:1.5px solid #fff;background:#fff;color:var(--ink);font-weight:600;font-size:1rem;cursor:pointer;transition:background .2s,color .2s}
   .enter:hover,.enter:focus-visible{background:transparent;color:#fff}
 
@@ -137,13 +142,15 @@
       <div class="grad" data-g="4"></div>
 
       <div class="intro" id="intro">
-        <div class="door l" id="doorL"><div class="inner">
+        <div class="solo" id="solo">
           <h1>Have an Idea?</h1>
           <button class="enter" type="button" data-enter>Enter!</button>
+        </div>
+        <div class="door l" id="doorL" aria-hidden="true"><div class="inner">
+          <div class="h1">Have an Idea?</div><span class="enter">Enter!</span>
         </div></div>
         <div class="door r" id="doorR" aria-hidden="true"><div class="inner">
-          <div class="h1">Have an Idea?</div>
-          <button class="enter" type="button" tabindex="-1" data-enter>Enter!</button>
+          <div class="h1">Have an Idea?</div><span class="enter">Enter!</span>
         </div></div>
       </div>
 
@@ -204,7 +211,7 @@
     scrollTo({top:top+max*k/STEPS,behavior:reduce?'auto':'smooth'});
   }
   [].forEach.call(document.querySelectorAll('[data-enter]'),function(b){b.addEventListener('click',function(){go(1)})});
-  var doorL=$('doorL'),doorR=$('doorR');
+  var doorL=$('doorL'),doorR=$('doorR'),solo=$('solo');
   dots.forEach(function(b){b.addEventListener('click',function(){go(+b.dataset.go)})});
 
   /* menu */
@@ -231,6 +238,9 @@
     var pi=Math.min(p,1);
     if(reduce){intro.style.opacity=1-pi}
     else{
+      var moving=pi>0;                              /* closed: whole intro; opening: the two doors */
+      vis(solo,!moving);
+      vis(doorL,moving);vis(doorR,moving);
       doorL.style.transform='translate3d('+(-pi*101)+'%,0,0)';
       doorR.style.transform='translate3d('+(pi*101)+'%,0,0)';
       var sh=pi>0&&pi<1;
