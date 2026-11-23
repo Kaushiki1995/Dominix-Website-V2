@@ -61,6 +61,21 @@
   .hero h1 em{color:var(--lime)}
   .hero p{margin-top:1.2rem;font-weight:300;font-size:clamp(1rem,1.3vw,1.18rem);color:var(--muted);max-width:34ch}
 
+  /* first-scroll scene: picture right, heading + subheading left; each layer glides in at its own speed */
+  .scene{position:absolute;inset:0;z-index:3;visibility:hidden;pointer-events:none}
+  .scene .img{position:absolute;right:calc(var(--gutter) + 2vw);top:50%;width:min(34vw,50svh);aspect-ratio:4/5;margin-top:calc(min(34vw,50svh) * -.625);border-radius:4px;overflow:hidden;box-shadow:0 40px 90px -40px rgba(0,0,0,.95);will-change:transform}
+  .scene .img img{width:100%;height:100%;object-fit:cover}
+  .scene .txt{position:absolute;left:var(--gutter);top:50%;transform:translateY(-50%);width:min(48vw,680px)}
+  .scene .cap{color:var(--lime);will-change:transform}
+  .scene h2{font-family:var(--serif);font-weight:400;font-size:clamp(3rem,7.4vw,7.8rem);line-height:.98;letter-spacing:-.03em;margin:1.2rem 0 1.4rem;will-change:transform}
+  .scene h2 em{color:var(--lime)}
+  .scene p{font-weight:300;font-size:clamp(1.05rem,1.5vw,1.4rem);line-height:1.45;color:#c9c8c1;max-width:30ch;will-change:transform}
+  @media(max-width:700px){
+    .scene .img{top:13svh;margin-top:0;right:var(--gutter);width:56vw}
+    .scene .txt{top:auto;bottom:13svh;right:var(--gutter);transform:none;width:auto}
+    .scene h2{font-size:clamp(2.6rem,12vw,3.6rem);margin:.8rem 0 1rem}
+  }
+
   .hud{position:absolute;left:var(--gutter);right:var(--gutter);bottom:26px;z-index:4;display:flex;align-items:center;gap:1.4rem}
   .hud .n{font-variant-numeric:tabular-nums;color:var(--lime)}
   .hud .w{font-family:var(--serif);font-style:italic;font-size:1.05rem;min-width:7ch}
@@ -123,8 +138,17 @@
       <div class="halo" id="halo" aria-hidden="true"></div>
 
       <div class="hero" id="hero">
-        <h1>Design, <em>in motion.</em></h1>
-        <p>Scroll, and follow the sphere through the language of design.</p>
+        <h1>We are <em id="dmx">Dominix.</em></h1>
+        <p>What do we do? Find it.</p>
+      </div>
+
+      <div class="scene" id="scene">
+        <div class="img" id="sImg"><img src="assets/big.jpg" alt="Skyline of glass towers" width="1100" height="733"></div>
+        <div class="txt">
+          <div class="cap" id="sCap">01 &mdash; Mega Projects</div>
+          <h2 id="sHead">We can go <em>BIG!</em></h2>
+          <p id="sSub">Designing and developing large-scale destinations and experiences.</p>
+        </div>
       </div>
 
       <div id="field" aria-label="Words of design"></div>
@@ -165,8 +189,11 @@
 
 <script>
 (function(){
-  /* the words the sphere bounces across, in order.
-     x = horizontal position (0..1), s = size, d = depth (parallax speed), it = italic */
+  /* ===== the sphere's route =====
+     step 0  landing: keeps bouncing on "Dominix."
+     step 1  first scroll: lands on the picture, then hops by itself to
+             "We can go BIG!" and on to the subheading, and keeps bouncing there
+     step 2+ the design words, one bounce per scroll                          */
   var WORDS=[
     {t:'Idea',x:.62,s:6.4,d:1,it:1},
     {t:'Form',x:.28,s:4.4,d:.8},
@@ -180,25 +207,29 @@
     {t:'Harmony',x:.34,s:4.8,d:.9,it:1},
     {t:'Impact',x:.56,s:7.4,d:1.1}
   ];
-  var N=WORDS.length,STEPS=N-1;
+  var FIRST_WORD=2;                                  /* words start at step 2 */
+  var N=WORDS.length,STEPS=FIRST_WORD+N-1;
+  var LABELS=['Dominix','We can go big'].concat(WORDS.map(function(w){return w.t}));
+
   var $=function(id){return document.getElementById(id)};
   var track=$('track'),stage=$('stage'),field=$('field'),sphere=$('sphere'),halo=$('halo'),ghost=$('ghost'),grid=$('grid'),hero=$('hero');
+  var dmx=$('dmx'),scene=$('scene'),sImg=$('sImg'),sHead=$('sHead'),sSub=$('sSub'),sCap=$('sCap');
   var hn=$('hn'),hw=$('hw'),hb=$('hb');
   var reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
   var clamp=function(v,a,b){return v<a?a:v>b?b:v};
   var pad=function(n){return(n<10?'0':'')+n};
 
-  /* build words + scroll-snap points (one per bounce) */
-  var els=WORDS.map(function(w,i){
+  /* build words + scroll-snap points (one per step) */
+  var els=WORDS.map(function(w){
     var el=document.createElement('div');
     el.className='word'+(w.it?' it':'');
     el.textContent=w.t;
     el.style.setProperty('--s',w.s);
     el.style.setProperty('--o',(.18+(w.d-.7)*.55).toFixed(2));
     field.appendChild(el);
-    var sn=document.createElement('div');sn.className='snap';sn.style.top='calc('+i+' * var(--step))';track.appendChild(sn);
     return el;
   });
+  for(var k=0;k<=STEPS;k++){var sn=document.createElement('div');sn.className='snap';sn.style.top='calc('+k+' * var(--step))';track.appendChild(sn)}
   track.style.height='calc(100svh + '+STEPS+' * var(--step))';
 
   var dims=[],vw=0,vh=0,mobile=false,R=0;
@@ -208,89 +239,122 @@
     R=sphere.offsetWidth/2;
   }
 
-  /* where word i sits on screen for progress p (parallax: deeper words move faster) */
+  /* word i on screen for progress p (parallax: deeper words move faster) */
   function place(i,p){
     var w=WORDS[i],x=mobile?.5+(w.x-.5)*.5:w.x;
     var step=vh*(mobile?.36:.42);
-    return{x:x*vw,y:vh*.54+(i-p)*step*w.d};
+    return{x:x*vw,y:vh*.54+(i+FIRST_WORD-p)*step*w.d};
   }
-  /* the point on top of word i where the sphere lands */
-  function land(i,p){
-    var c=place(i,p),d=dims[i];
-    var dip=i===hitWord?Math.max(0,imp)*d.h*.07:0;
-    return{x:c.x,y:c.y-d.h/2+d.h*.3+dip};
+  /* the spot on top of an element where the sphere touches down */
+  function top(el,frac,lift){
+    var r=el.getBoundingClientRect(),s=stage.getBoundingClientRect();
+    return{x:r.left-s.left+r.width*frac,y:r.top-s.top+r.height*lift};
+  }
+  function wordTop(i,p){var c=place(i,p),d=dims[i];return{x:c.x,y:c.y-d.h/2+d.h*.3}}
+
+  /* step 1: picture -> heading -> subheading, played in time once you arrive */
+  var HOP=.72,chainT=null;                          /* null = the hops have not started */
+  function hop(a,b,u,h){return{x:a.x+(b.x-a.x)*u,y:a.y+(b.y-a.y)*u-h*4*u*(1-u)}}
+  function sceneSpot(now){
+    var img=top(sImg,.5,0),hd=top(sHead,.62,.22),sb=top(sSub,.3,.12);
+    if(chainT===null)return{pt:img,u:-1,done:false};
+    var t=(now-chainT)/1000,h=vh*.16;
+    if(t<HOP)return{pt:hop(img,hd,t/HOP,h),u:t/HOP,done:false};
+    if(t<2*HOP)return{pt:hop(hd,sb,(t-HOP)/HOP,h*.7),u:(t-HOP)/HOP,done:false};
+    return{pt:sb,u:-1,done:true};
+  }
+  /* resting point for each step */
+  function spot(k,p,now){
+    if(k===0)return{pt:top(dmx,.5,.24),done:true,u:-1};
+    if(k===1)return sceneSpot(now);
+    return{pt:wordTop(k-FIRST_WORD,p),done:true,u:-1};
   }
 
-  var cur=-1,lastT=0,TAU=.14,lastP=-1,lastIdx=-1,ticking=false;
-  /* impact spring: when the sphere touches a word it squashes, wobbles and settles round */
-  var hitWord=-1,impT=0,imp=0,lastImp=0;
-  function spring(t){return t>650?0:Math.exp(-t/150)*Math.cos(t/58)}
-  function render(now){
-    ticking=false;
+  var cur=-1,TAU=.14,lastP=-1,lastIdx=-1,lastNow=0,running=false,t0=0;
+  function frame(now){
+    if(!t0)t0=now;
+    var dt=lastNow?Math.min((now-lastNow)/1000,.05):0;lastNow=now;
     var max=track.offsetHeight-vh;
     var target=max>0?clamp(-track.getBoundingClientRect().top,0,max)/max*STEPS:0;
-    now=now||performance.now();
-    var dt=lastT?Math.min((now-lastT)/1000,.1):0;lastT=now;
     if(cur<0||reduce)cur=target;else cur+=(target-cur)*(1-Math.exp(-dt/TAU));
-    if(Math.abs(target-cur)<.0005)cur=target;else{ticking=true;requestAnimationFrame(render)}
-    var p=cur;
-    var ci=Math.round(p);
-    if(hitWord>=0&&Math.abs(p-hitWord)>.45)hitWord=-1;
-    if(!reduce&&Math.abs(p-ci)<.05&&ci!==hitWord){hitWord=ci;impT=now}
-    var it=hitWord>=0?now-impT:1e9;
-    imp=reduce?0:spring(it);
-    var springing=it<650;
-    if(springing&&!ticking){ticking=true;requestAnimationFrame(render)}
-    if(cur===target&&!ticking)lastT=0;
-    if(p===lastP&&!springing&&it>=1e9-1)return;
-    if(p===lastP&&!springing&&lastImp===0)return;
-    lastP=p;lastImp=springing?imp:0;
+    if(Math.abs(target-cur)<.0005)cur=target;
+    var p=cur,T=(now-t0)/1000;
 
-    /* words */
-    for(var i=0;i<N;i++){
-      var c=place(i,p),d=dims[i],el=els[i];
-      var on=c.y>-d.h&&c.y<vh+d.h;
-      if(el.style.visibility!==(on?'visible':'hidden'))el.style.visibility=on?'visible':'hidden';
-      if(!on)continue;
-      var dip=i===hitWord?Math.max(0,imp)*d.h*.07:0;
-      el.style.transform='translate3d('+(c.x-d.w/2)+'px,'+(c.y-d.h/2+dip)+'px,0)';
-      el.classList.toggle('hit',Math.abs(p-i)<.5);
-      el.classList.toggle('seen',i<p-.5);
+    /* start / reset the step-1 hop chain */
+    if(Math.abs(p-1)<.04&&chainT===null)chainT=reduce?now-9e3:now;
+    if(Math.abs(p-1)>.6)chainT=null;
+
+    /* landing heading + first-scroll scene: float gently, scene glides in with parallax */
+    var fl=reduce?0:1;
+    hero.style.opacity=clamp(1-p*1.6,0,1);
+    hero.style.transform='translate3d(0,'+(-p*70+Math.sin(T*1.1)*5*fl)+'px,0)';
+    var so=clamp(1.7-Math.abs(p-1)*1.7,0,1);
+    scene.style.visibility=so>0?'visible':'hidden';
+    if(so>0){
+      scene.style.opacity=so;
+      var e=(1-p)*vh;                                   /* + below, - above */
+      sImg.style.transform='translate3d(0,'+(e*.9+Math.sin(T*1.05)*9*fl)+'px,0)';
+      sCap.style.transform='translate3d(0,'+(e*1.05+Math.sin(T*.9+.6)*4*fl)+'px,0)';
+      sHead.style.transform='translate3d(0,'+(e*1.15+Math.sin(T*.95+1.2)*6*fl)+'px,0)';
+      sSub.style.transform='translate3d(0,'+(e*1.3+Math.sin(T*1.25+2.1)*4*fl)+'px,0)';
     }
 
-    /* sphere: arcs from word i to word i+1, squashes on contact */
-    var i0=Math.min(Math.floor(p),STEPS-1),f=p-i0;
-    var a=land(i0,p),b=land(i0+1,p);
-    var x,y,sx=1,sy=1;
-    if(reduce){var k=f<.5?a:b;x=k.x;y=k.y}
-    else{
-      var h=vh*.2+Math.abs(b.x-a.x)*.14;
-      x=a.x+(b.x-a.x)*f;
-      y=a.y+(b.y-a.y)*f-h*4*f*(1-f);
-      var air=Math.sin(Math.PI*f)*.08;                 /* slight stretch in flight */
-      sx=(1+.3*imp)/(1+air);sy=(1-.26*imp)*(1+air);     /* squash on impact, then wobble back to round */
+    /* words + background (only when the scroll position moved) */
+    if(p!==lastP){
+      lastP=p;
+      var wf=clamp((p-1.25)/.5,0,1);                    /* words fade in after the scene */
+      for(var i=0;i<N;i++){
+        var c=place(i,p),d=dims[i],el=els[i];
+        var on=wf>0&&c.y>-d.h&&c.y<vh+d.h;
+        if(el.style.visibility!==(on?'visible':'hidden'))el.style.visibility=on?'visible':'hidden';
+        if(!on)continue;
+        el.style.opacity=wf;
+        el.style.transform='translate3d('+(c.x-d.w/2)+'px,'+(c.y-d.h/2)+'px,0)';
+        el.classList.toggle('hit',Math.abs(p-(i+FIRST_WORD))<.5);
+        el.classList.toggle('seen',i+FIRST_WORD<p-.5);
+      }
+      if(!reduce){
+        ghost.style.transform='translate3d(-50%,'+(vh*.18-p*vh*.1)+'px,0)';
+        grid.style.transform='translate3d(0,'+(-(p*vh*.06)%(vh*.2))+'px,0)';
+      }
+      var idx=clamp(Math.round(p),0,STEPS);
+      hb.style.transform='scaleX('+(p/STEPS)+')';
+      if(idx!==lastIdx){lastIdx=idx;hn.textContent=pad(idx+1)+' / '+pad(STEPS+1);hw.textContent=LABELS[idx]}
     }
+
+    /* ---- sphere ---- */
+    var k0=Math.min(Math.floor(p),STEPS-1),f=p-k0;
+    var A=spot(k0,p,now),B=spot(k0+1,p,now);
+    var arcH=vh*.2+Math.abs(B.pt.x-A.pt.x)*.14;
+    var x=A.pt.x+(B.pt.x-A.pt.x)*f,y=A.pt.y+(B.pt.y-A.pt.y)*f-(reduce?0:arcH*4*f*(1-f));
+    var cont=reduce?0:Math.max(0,1-Math.min(f,1-f)/.07);   /* touching down between scroll steps */
+
+    /* at rest: keep bouncing in place (or play the step-1 hops) */
+    var near=f<.5?A:B,rest=Math.max(0,1-Math.min(f,1-f)/.1);
+    if(!reduce&&rest>0){
+      if(near.u>=0){                                      /* mid-hop in the step-1 chain */
+        cont=Math.max(0,1-Math.min(near.u,1-near.u)/.08)*rest;
+      }else if(near.done){
+        var P=mobile?.62:.7,u=(T%P)/P,hopH=(mobile?.05:.065)*vh;
+        y-=hopH*4*u*(1-u)*rest;
+        cont=Math.max(cont*(1-rest),Math.max(0,1-Math.min(u,1-u)/.09)*rest);
+      }
+    }
+    var air=cont>0?0:.06;
+    var sx=(1+.3*cont)/(1+air),sy=(1-.26*cont)*(1+air);
     sphere.style.transform='translate3d('+(x-R)+'px,'+(y-2*R)+'px,0) scale('+sx.toFixed(3)+','+sy.toFixed(3)+')';
     halo.style.transform='translate3d('+(x-450)+'px,'+(y-R-450)+'px,0)';
 
-    /* background layers drift slower than the words */
-    if(!reduce){
-      ghost.style.transform='translate3d(-50%,'+(vh*.18-p*vh*.12)+'px,0)';
-      grid.style.transform='translate3d(0,'+(-(p*vh*.06)%(vh*.2))+'px,0)';
-    }
-    hero.style.opacity=clamp(1-p*1.8,0,1);
-    if(!reduce)hero.style.transform='translate3d(0,'+(-p*60)+'px,0)';
-
-    /* HUD */
-    var idx=clamp(Math.round(p),0,STEPS);
-    hb.style.transform='scaleX('+(p/STEPS)+')';
-    if(idx!==lastIdx){lastIdx=idx;hn.textContent=pad(idx+1)+' / '+pad(N);hw.textContent=WORDS[idx].t}
+    if(running)requestAnimationFrame(frame);
   }
-  function queue(){if(!ticking){ticking=true;requestAnimationFrame(render)}}
+
+  /* run only while the stage is on screen */
+  function start(){if(!running){running=true;lastNow=0;requestAnimationFrame(frame)}}
+  if('IntersectionObserver' in window)new IntersectionObserver(function(es){es[0].isIntersecting?start():(running=false)}).observe(track);
+  else start();
 
   /* light parallax on the sections below the stage */
-  var drift=[].slice.call(document.querySelectorAll('[data-speed]'));
-  var dTick=false;
+  var drift=[].slice.call(document.querySelectorAll('[data-speed]')),dTick=false;
   function driftFrame(){
     dTick=false;
     if(reduce)return;
@@ -301,10 +365,10 @@
       el.style.transform='translate3d(0,'+((r.top+r.height/2-h/2)*+el.dataset.speed)+'px,0)';
     });
   }
-  addEventListener('scroll',function(){queue();if(!dTick){dTick=true;requestAnimationFrame(driftFrame)}},{passive:true});
-  addEventListener('resize',function(){measure();lastP=-1;cur=-1;queue()});
-  measure();render();driftFrame();
-  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(function(){measure();lastP=-1;queue()});
+  addEventListener('scroll',function(){if(!dTick){dTick=true;requestAnimationFrame(driftFrame)}},{passive:true});
+  addEventListener('resize',function(){measure();lastP=-1;cur=-1});
+  measure();driftFrame();
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(function(){measure();lastP=-1});
 })();
 </script>
 </body>
