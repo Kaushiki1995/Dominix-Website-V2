@@ -15,7 +15,7 @@
     --red:#ed1c24; --blue:#0088cb; --yellow:#ffcb05;
     --serif:'Playfair Display',Georgia,serif; --sans:'Inter',system-ui,sans-serif;
     --gutter:clamp(16px,4.5vw,64px);
-    --step:120svh;                /* scroll distance per stage (longer = slower) */
+    --step:100svh;                /* scroll distance per stage (longer = slower) */
   }
   *{box-sizing:border-box;margin:0}
   body{font-family:var(--sans);background:var(--ink);color:#fff;-webkit-font-smoothing:antialiased;line-height:1.6}
@@ -45,29 +45,30 @@
   .menu .foot{margin-top:2rem;font-size:.85rem;color:#9a9a9a}
 
   /* ---------- pinned stage ---------- */
-  .track{position:relative;height:calc(100svh + 8 * var(--step))}
+  .track{position:relative;height:calc(100svh + 11 * var(--step))}
   .stage{position:sticky;top:0;height:100svh;overflow:hidden;isolation:isolate}
 
-  /* Blurred gradients: soft radial gradients instead of filter:blur(), so they are
-     painted once and only their opacity/transform change while scrolling. */
-  .grad{position:absolute;inset:-12%;z-index:-1;will-change:opacity,transform;opacity:0;visibility:hidden}
-  .grad[data-g="0"]{display:none}  /* the intro gradient lives on the doors */
-  .grad[data-g="1"]{background:
-      radial-gradient(50% 55% at 20% 25%,rgba(237,28,36,.85),transparent 70%),
-      radial-gradient(45% 50% at 85% 70%,rgba(255,120,40,.6),transparent 70%),
-      radial-gradient(40% 40% at 60% 10%,rgba(120,10,40,.7),transparent 70%),#1d0608}
-  .grad[data-g="2"]{background:
-      radial-gradient(50% 55% at 80% 25%,rgba(0,136,203,.85),transparent 70%),
-      radial-gradient(45% 50% at 15% 75%,rgba(0,200,200,.45),transparent 70%),
-      radial-gradient(40% 40% at 45% 50%,rgba(40,60,190,.5),transparent 70%),#04121f}
-  .grad[data-g="3"]{background:
-      radial-gradient(50% 55% at 25% 70%,rgba(255,203,5,.75),transparent 70%),
-      radial-gradient(45% 50% at 80% 20%,rgba(255,140,0,.55),transparent 70%),
-      radial-gradient(40% 40% at 60% 90%,rgba(140,90,10,.6),transparent 70%),#1b1504}
-  .grad[data-g="4"]{background:
-      radial-gradient(50% 55% at 75% 70%,rgba(130,70,230,.75),transparent 70%),
-      radial-gradient(45% 50% at 20% 25%,rgba(0,136,203,.55),transparent 70%),
-      radial-gradient(40% 40% at 50% 50%,rgba(237,28,36,.30),transparent 70%),#0f0a1d}
+  /* Split background: a top band and a bottom band, each with its own blurred
+     gradient per speciality. Soft radial gradients (no filter:blur), so only
+     opacity/transform change while scrolling. */
+  .bands{position:absolute;inset:0;z-index:-1}
+  .band{position:absolute;left:0;right:0;height:50%;overflow:hidden}
+  .band.top{top:0}
+  .band.bot{bottom:0;border-top:1px solid rgba(255,255,255,.08)}
+  .band.bot::after{content:'';position:absolute;inset:0;background:rgba(0,0,0,.24)}
+  .g{position:absolute;inset:-30%;opacity:0;visibility:hidden;will-change:opacity,transform}
+  .g[data-s="0"]{--c1:rgba(237,28,36,.85);--c2:rgba(255,120,40,.6);--c3:rgba(120,10,40,.75);--base:#1d0608}
+  .g[data-s="1"]{--c1:rgba(0,136,203,.85);--c2:rgba(0,200,200,.45);--c3:rgba(40,60,190,.6);--base:#04121f}
+  .g[data-s="2"]{--c1:rgba(255,203,5,.75);--c2:rgba(255,140,0,.55);--c3:rgba(140,90,10,.65);--base:#1b1504}
+  .g[data-s="3"]{--c1:rgba(130,70,230,.75);--c2:rgba(0,136,203,.55);--c3:rgba(237,28,36,.35);--base:#0f0a1d}
+  .top .g{background:
+      radial-gradient(30% 60% at 28% 45%,var(--c1),transparent 70%),
+      radial-gradient(28% 55% at 72% 60%,var(--c2),transparent 70%),
+      radial-gradient(22% 45% at 55% 20%,var(--c3),transparent 70%),var(--base)}
+  .bot .g{background:
+      radial-gradient(30% 60% at 70% 40%,var(--c1),transparent 70%),
+      radial-gradient(28% 55% at 25% 55%,var(--c3),transparent 70%),
+      radial-gradient(22% 45% at 50% 85%,var(--c2),transparent 70%),var(--base)}
 
   /* stage 1: question */
   /* stage 1 is split into two doors that slide apart to reveal the first speciality */
@@ -88,20 +89,38 @@
   .enter{height:54px;padding:0 2.2rem;border-radius:999px;border:1.5px solid #fff;background:#fff;color:var(--ink);font-weight:600;font-size:1rem;cursor:pointer;transition:background .2s,color .2s}
   .enter:hover,.enter:focus-visible{background:transparent;color:#fff}
 
-  /* stages 2-9: centred square + caption */
-  .show{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.2rem;padding:90px var(--gutter) 30px;opacity:0;visibility:hidden;will-change:opacity,transform}
-  .square{position:relative;width:min(80vw,52svh,560px);aspect-ratio:1;overflow:hidden;border-radius:6px;background:rgba(0,0,0,.25);box-shadow:0 30px 70px -30px rgba(0,0,0,.6);contain:strict}
+  /* ---------- specialities: two stacked frames (left) + heading and list (right) ---------- */
+  .show{position:absolute;inset:0;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);align-items:center;column-gap:clamp(24px,5vw,80px);padding:100px var(--gutter) 40px;opacity:0;visibility:hidden;will-change:opacity,transform}
+  .frames{--s:min(34vw,60svh,540px);position:relative;width:calc(var(--s) * 1.16);height:calc(var(--s) * 1.16);justify-self:center}
+  .frame{position:absolute;width:var(--s);height:var(--s);overflow:hidden;border-radius:6px;contain:strict}
+  .frame.back{left:0;top:0;background:rgba(0,0,0,.3);box-shadow:0 20px 50px -25px rgba(0,0,0,.6)}
+  .frame.back img{filter:brightness(.72) saturate(.85)}
+  .frame.front{right:0;bottom:0;background:rgba(0,0,0,.25);box-shadow:0 30px 70px -30px rgba(0,0,0,.7)}
   .panel{position:absolute;inset:0;overflow:hidden;will-change:transform;visibility:hidden}
   .panel img{position:absolute;left:0;top:-12%;width:100%;height:124%;object-fit:cover;will-change:transform}
-  .tag{position:absolute;z-index:9;left:12px;top:12px;padding:.25rem .6rem;border-radius:999px;background:rgba(0,0,0,.45);font-size:.72rem;letter-spacing:.08em;font-weight:500}
 
-  .caption{width:min(80vw,52svh,560px);display:flex;align-items:center;justify-content:space-between;gap:1rem}
-  .roll{height:1.2em;overflow:hidden;font-family:var(--serif);font-weight:700;font-size:clamp(1.4rem,2.8vw,2.3rem);line-height:1.2}
-  .roll ul{list-style:none;padding:0;will-change:transform}
-  .roll li{height:1.2em;white-space:nowrap}
-  .dots{display:flex;gap:8px;flex:none}
-  .dots button{all:unset;cursor:pointer;width:9px;height:9px;border-radius:50%;border:1.5px solid #fff;transition:transform .2s,background .2s}
-  .dots button.on{background:#fff;transform:scale(1.3)}
+  .info{width:100%;max-width:520px}
+  .count{font-size:.78rem;letter-spacing:.16em;text-transform:uppercase;opacity:.75;margin-bottom:.6rem}
+  .head{height:1.3em;overflow:hidden;font-family:var(--serif);font-weight:700;font-size:clamp(2rem,4.2vw,3.8rem);line-height:1.3;letter-spacing:-.01em}
+  .head ul{list-style:none;padding:0;will-change:transform}
+  .head li{height:1.3em;white-space:nowrap}
+  .lists{--row:3.4rem;position:relative;margin-top:2rem;height:calc(3 * var(--row) + 1px)}
+  .list{position:absolute;inset:0;list-style:none;padding:0;visibility:hidden;will-change:opacity,transform}
+  .list li{border-top:1px solid rgba(255,255,255,.2)}
+  .list li:last-child{border-bottom:1px solid rgba(255,255,255,.2)}
+  .list button{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:center;gap:1rem;width:100%;height:calc(var(--row) - 1px);opacity:.45;transition:opacity .4s,padding .4s}
+  .list button:hover{opacity:.8}
+  .list button.on{opacity:1;padding-left:.75rem}
+  .list button:focus-visible{outline:2px solid #fff;outline-offset:-2px}
+  .list .n{font-size:.75rem;letter-spacing:.12em;font-variant-numeric:tabular-nums;width:1.8rem}
+  .list .t{font-size:clamp(1rem,1.5vw,1.25rem);font-weight:500}
+
+  @media(max-width:820px){
+    .show{grid-template-columns:minmax(0,1fr);align-content:center;justify-items:center;row-gap:1.6rem;padding:92px var(--gutter) 24px}
+    .frames{--s:min(64vw,36svh)}
+    .lists{--row:2.7rem;margin-top:1rem}
+    .head{font-size:clamp(1.8rem,8vw,2.6rem)}
+  }
 
   /* ---------- after the banner ---------- */
   .after{background:var(--paper);color:var(--ink);padding:clamp(80px,12vw,150px) var(--gutter);display:grid;grid-template-columns:1fr 1fr;gap:clamp(24px,6vw,100px)}
@@ -123,10 +142,10 @@
 </div>
 
 <nav class="menu" id="menu" aria-label="Main menu">
-  <a href="#" data-go="1">Mega Projects</a>
-  <a href="#" data-go="3">Design Studio</a>
-  <a href="#" data-go="5">Infrastructure</a>
-  <a href="#" data-go="7">IPs &amp; Ventures</a>
+  <a href="#" data-spec="0">Mega Projects</a>
+  <a href="#" data-spec="1">Design Studio</a>
+  <a href="#" data-spec="2">Infrastructure</a>
+  <a href="#" data-spec="3">IPs &amp; Ventures</a>
   <a href="#about">About</a>
   <a href="#contact">Contact</a>
   <div class="foot">Pune &middot; Dubai &middot; New Jersey &middot; Tampa</div>
@@ -135,11 +154,10 @@
 <main id="top">
   <div class="track" id="track">
     <div class="stage" id="stage">
-      <div class="grad" data-g="0"></div>
-      <div class="grad" data-g="1"></div>
-      <div class="grad" data-g="2"></div>
-      <div class="grad" data-g="3"></div>
-      <div class="grad" data-g="4"></div>
+      <div class="bands" aria-hidden="true">
+        <div class="band top" id="bandTop"></div>
+        <div class="band bot" id="bandBot"></div>
+      </div>
 
       <div class="intro" id="intro">
         <div class="solo" id="solo">
@@ -155,27 +173,14 @@
       </div>
 
       <div class="show" id="show" aria-hidden="true">
-        <div class="square">
-          <div class="panel"><img src="assets/mega-1.webp" alt="Skyscrapers seen from below" width="900" height="900" decoding="async"></div>
-          <div class="panel"><img data-src="assets/mega-2.webp" alt="Glass towers under a cloudy sky" width="900" height="900" decoding="async"></div>
-          <div class="panel"><img data-src="assets/design-1.webp" alt="Hand sketching an app wireframe" width="900" height="900" decoding="async"></div>
-          <div class="panel"><img data-src="assets/design-2.webp" alt="Minimal studio interior" width="900" height="900" decoding="async"></div>
-          <div class="panel"><img data-src="assets/infra-1.webp" alt="Aerial view of a construction site" width="900" height="900" decoding="async"></div>
-          <div class="panel"><img data-src="assets/infra-2.webp" alt="Modern residential building at dusk" width="900" height="900" decoding="async"></div>
-          <div class="panel"><img data-src="assets/ventures-1.webp" alt="Close-up of a circuit board" width="900" height="900" decoding="async"></div>
-          <div class="panel"><img data-src="assets/ventures-2.webp" alt="Laptop showing a growth dashboard" width="900" height="900" decoding="async"></div>
-          <span class="tag" id="tag">01 &middot; 1/2</span>
+        <div class="frames">
+          <div class="frame back" id="back"></div>
+          <div class="frame front" id="front"></div>
         </div>
-        <div class="caption">
-          <div class="roll" aria-live="polite"><ul id="roll">
-            <li>Mega Projects</li><li>Design Studio</li><li>Infrastructure</li><li>IPs &amp; Ventures</li>
-          </ul></div>
-          <div class="dots" id="dots">
-            <button data-go="1" aria-label="Mega Projects"></button>
-            <button data-go="3" aria-label="Design Studio"></button>
-            <button data-go="5" aria-label="Infrastructure"></button>
-            <button data-go="7" aria-label="IPs and Ventures"></button>
-          </div>
+        <div class="info">
+          <div class="count" id="count">01 / 04</div>
+          <h2 class="head" aria-live="polite"><ul id="head"></ul></h2>
+          <div class="lists" id="lists"></div>
         </div>
       </div>
     </div>
@@ -194,19 +199,70 @@
 
 <script>
 (function(){
-  var STEPS=8;                                   /* 9 positions: intro + 4 specialities x 2 pictures */
+  /* ===== CONTENT: edit names and pictures here =====
+     img  = speciality picture (back frame, changes once per speciality)
+     items = sub-parts (front frame + list, one per scroll step)            */
+  var DATA=[
+    {name:'Mega Projects',img:'assets/spec-mega-projects.jpg',alt:'City skyline',items:[
+      {name:'Project 01',img:'assets/mega-1.webp',alt:'Skyscrapers seen from below'},
+      {name:'Project 02',img:'assets/mega-2.webp',alt:'Glass towers under a cloudy sky'},
+      {name:'Project 03',img:'assets/mega-1.webp',alt:'Skyscrapers seen from below',pos:'85% 50%'}]},
+    {name:'Design Studio',img:'assets/spec-design-studio.jpg',alt:'Design studio',items:[
+      {name:'Studio 01',img:'assets/design-1.webp',alt:'Hand sketching an app wireframe'},
+      {name:'Studio 02',img:'assets/design-2.webp',alt:'Minimal studio interior'},
+      {name:'Studio 03',img:'assets/design-1.webp',alt:'Hand sketching an app wireframe',pos:'85% 50%'}]},
+    {name:'Infrastructure',img:'assets/spec-infrastructure.jpg',alt:'Infrastructure works',items:[
+      {name:'Infrastructure 01',img:'assets/infra-1.webp',alt:'Aerial view of a construction site'},
+      {name:'Infrastructure 02',img:'assets/infra-2.webp',alt:'Modern residential building at dusk'}]},
+    {name:'IPs & Ventures',img:'assets/spec-ips-ventures.jpg',alt:'Technology ventures',items:[
+      {name:'Venture 01',img:'assets/ventures-1.webp',alt:'Close-up of a circuit board'},
+      {name:'Venture 02',img:'assets/ventures-2.webp',alt:'Laptop showing a growth dashboard'},
+      {name:'Venture 03',img:'assets/ventures-1.webp',alt:'Close-up of a circuit board',pos:'85% 50%'}]}
+  ];
+
   var $=function(id){return document.getElementById(id)};
-  var track=$('track'),stage=$('stage'),intro=$('intro'),show=$('show'),roll=$('roll'),tag=$('tag');
-  var grads=[].slice.call(stage.querySelectorAll('.grad'));
-  var panels=[].slice.call(stage.querySelectorAll('.panel'));
-  var imgs=panels.map(function(p){return p.firstElementChild});
-  var dots=[].slice.call($('dots').children);
+  var esc=function(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;')};
+  var pad=function(n){return(n<10?'0':'')+n};
+  var track=$('track'),stage=$('stage'),intro=$('intro'),show=$('show');
+  var front=$('front'),back=$('back'),head=$('head'),lists=$('lists'),count=$('count');
+
+  /* ---- build the frames, heading and lists from DATA ---- */
+  function panel(src,alt,eager,pos){
+    return '<div class="panel"><img '+(eager?'src':'data-src')+'="'+esc(src)+'" alt="'+esc(alt)+'" decoding="async"'+
+      (pos?' style="object-position:'+esc(pos)+'"':'')+'></div>';
+  }
+  var first=[],total=0,bandHTML='';
+  DATA.forEach(function(s,j){
+    first.push(total);
+    back.insertAdjacentHTML('beforeend',panel(s.img,s.alt,j===0));
+    head.insertAdjacentHTML('beforeend','<li>'+esc(s.name)+'</li>');
+    var rows='';
+    s.items.forEach(function(it,i){
+      front.insertAdjacentHTML('beforeend',panel(it.img,it.alt,total===0,it.pos));
+      rows+='<li><button type="button" data-k="'+total+'"><span class="n">'+pad(i+1)+'</span><span class="t">'+esc(it.name)+'</span></button></li>';
+      total++;
+    });
+    lists.insertAdjacentHTML('beforeend','<ol class="list" aria-label="'+esc(s.name)+'">'+rows+'</ol>');
+    bandHTML+='<div class="g" data-s="'+j+'"></div>';
+  });
+  $('bandTop').innerHTML=bandHTML;$('bandBot').innerHTML=bandHTML;
+
+  var STEPS=total;                                 /* positions: intro + one per sub-part */
+  var NS=DATA.length;
+  track.style.height='calc(100svh + '+STEPS+' * var(--step))';
+  var fpanels=[].slice.call(front.children),fimgs=fpanels.map(function(p){return p.firstElementChild});
+  var bpanels=[].slice.call(back.children),bimgs=bpanels.map(function(p){return p.firstElementChild});
+  var gTop=[].slice.call($('bandTop').children),gBot=[].slice.call($('bandBot').children);
+  var lsts=[].slice.call(lists.children);
+  var rows=[].slice.call(lists.querySelectorAll('button'));
+  var specOf=[];DATA.forEach(function(s,j){s.items.forEach(function(){specOf.push(j)})});
+
   var reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
   var clamp=function(v,a,b){return v<a?a:v>b?b:v};
-  var lastP=-1,lastOn=-1,ticking=false;
+  var ease=function(t){return t*t*(3-2*t)};
+  var lastP=-1,lastRow=-1,lastSpec=-1,ticking=false;
   /* smoothing: the animation glides toward the scroll position instead of snapping to it */
   var cur=-1,lastT=0,TAU=.18;                    /* TAU = seconds to cover ~63% of the remaining gap */
-  var ease=function(t){return t*t*(3-2*t)};
 
   /* jump to a stage */
   function go(k){
@@ -215,7 +271,7 @@
   }
   [].forEach.call(document.querySelectorAll('[data-enter]'),function(b){b.addEventListener('click',function(){go(1)})});
   var doorL=$('doorL'),doorR=$('doorR'),solo=$('solo');
-  dots.forEach(function(b){b.addEventListener('click',function(){go(+b.dataset.go)})});
+  rows.forEach(function(b){b.addEventListener('click',function(){go(+b.dataset.k+1)})});
 
   /* menu */
   var burger=$('burger');
@@ -224,11 +280,27 @@
   $('menu').addEventListener('click',function(e){
     var a=e.target.closest('a');if(!a)return;
     setMenu(false);
-    if(a.dataset.go){e.preventDefault();go(+a.dataset.go)}
+    if(a.dataset.spec){e.preventDefault();go(first[+a.dataset.spec]+1)}
   });
   addEventListener('keydown',function(e){if(e.key==='Escape')setMenu(false)});
 
   function vis(el,on){var v=on?'visible':'hidden';if(el.style.visibility!==v)el.style.visibility=v}
+  function load(im){if(im.dataset.src){im.src=im.dataset.src;im.removeAttribute('data-src')}}
+
+  /* slide a stack of panels: panel k slides in as t goes k-1 -> k (dir -1 = from above) */
+  function slide(panels,imgs,t,dir){
+    var n=panels.length;
+    panels.forEach(function(el,k){
+      var r=k===0?1:ease(clamp(t-(k-1),0,1));        /* how far this picture has slid in */
+      var leave=ease(clamp(t-k,0,1));                /* how far the next picture covers it */
+      var covered=k<n-1&&leave>=1;
+      vis(el,r>0&&!covered);
+      if(r<=0||covered)return;
+      if(reduce){el.style.opacity=r;return}
+      el.style.transform='translate3d(0,'+(dir*(1-r)*100)+'%,0)';
+      imgs[k].style.transform='translate3d(0,'+(-dir*(1-r)*55+dir*leave*8)+'%,0)';
+    });
+  }
 
   function render(now){
     ticking=false;
@@ -266,49 +338,53 @@
     vis(show,p>0);
     show.setAttribute('aria-hidden',pi<.5);
 
-    /* q: 0..7 across the 8 pictures. Gradient holds for the 1st picture of a
-       speciality and changes while scrolling to the next speciality. */
+    /* q: 0..STEPS-1 across the sub-parts.
+       gp: 0..NS-1 across the specialities; it only moves while scrolling into
+       the first sub-part of the next speciality. */
     var q=Math.max(p-1,0);
-    var seg=Math.min(Math.floor(q/2),3);
-    var gp=p<1?1:1+seg+clamp(q-2*seg-1,0,1);        /* 1..4 = speciality gradients (Mega Projects waits behind the doors) */
+    var gp=0;
+    for(var j=1;j<NS;j++)gp+=ease(clamp(q-(first[j]-1),0,1));
 
-    grads.forEach(function(g,j){
-      var o=clamp(1-Math.abs(gp-j),0,1);
-      vis(g,o>0);
-      if(o>0){
-        g.style.opacity=o;
-        if(!reduce)g.style.transform='translate3d('+((j-gp)*5)+'vw,'+((j-gp)*-6)+'vh,0)';
-      }
-    });
+    /* front frame: every sub-part slides up; back frame: speciality picture slides down */
+    slide(fpanels,fimgs,q,1);
+    slide(bpanels,bimgs,gp,-1);
 
-    /* pictures slide up into the square; the image inside moves slower (parallax) */
-    panels.forEach(function(el,k){
-      var r=k===0?1:ease(clamp(q-(k-1),0,1));        /* how far this picture has slid in (eased) */
-      var leave=ease(clamp(q-k,0,1));                /* how far the next picture covers it */
-      var covered=k<panels.length-1&&leave>=1;
-      vis(el,r>0&&!covered);
-      if(r<=0||covered)return;
-      if(reduce){el.style.opacity=r;return}
-      el.style.transform='translate3d(0,'+((1-r)*100)+'%,0)';
-      imgs[k].style.transform='translate3d(0,'+(-(1-r)*55+leave*8)+'%,0)';
-    });
-
-    /* lazy-load: fetch the current picture and the next two only */
-    var need=Math.min(Math.floor(q)+2,imgs.length-1);
-    for(var i=0;i<=need;i++){var im=imgs[i];if(im.dataset.src){im.src=im.dataset.src;im.removeAttribute('data-src')}}
-
-    /* caption rolls with the gradient */
-    var sp=clamp(gp-1,0,3);
-    var f=sp-Math.floor(sp),idx=Math.round(sp);     /* caption fades out, swaps at the midpoint, fades back in */
-    var fade=clamp(Math.abs(f-.5)*2.6-.3,0,1);
-    roll.style.transform='translate3d(0,'+(-idx*1.2+(f-.5)*(f>0&&f<1?-.6:0))+'em,0)';
-    roll.style.opacity=f===0?1:fade;
-    var on=Math.round(sp),pic=Math.round(q);
-    if(on*10+pic!==lastOn){
-      lastOn=on*10+pic;
-      tag.textContent='0'+(on+1)+' · '+(pic%2+1)+'/2';
-      dots.forEach(function(d,i){d.classList.toggle('on',i===on)});
+    /* split background: colour follows the speciality, position drifts on every scroll */
+    function bands(gs,dir){
+      gs.forEach(function(g,j){
+        var o=clamp(1-Math.abs(gp-j),0,1);
+        vis(g,o>0);
+        if(o>0){
+          g.style.opacity=o;
+          if(!reduce)g.style.transform='translate3d('+(dir*((j-gp)*8+q*1.6))+'vw,'+((j-gp)*-6)+'%,0)';
+        }
+      });
     }
+    bands(gTop,1);bands(gBot,-1);
+
+    /* lazy-load: current picture and the next two */
+    var need=Math.min(Math.floor(q)+2,fimgs.length-1);
+    for(var i=0;i<=need;i++)load(fimgs[i]);
+    for(i=0;i<=Math.min(Math.floor(gp)+1,NS-1);i++)load(bimgs[i]);
+
+    /* heading rolls with the speciality: fades out, swaps at the midpoint, fades back in */
+    var f=gp-Math.floor(gp),idx=Math.round(gp);
+    var fade=clamp(Math.abs(f-.5)*2.6-.3,0,1);
+    head.style.transform='translate3d(0,'+(-idx*1.3+(f-.5)*(f>0&&f<1?-.6:0))+'em,0)';
+    head.style.opacity=f===0?1:fade;
+
+    /* sub-part list of the current speciality */
+    lsts.forEach(function(l,j){
+      var o=clamp(1-Math.abs(gp-j)*2.2,0,1);
+      vis(l,o>0);
+      if(o>0){l.style.opacity=o;if(!reduce)l.style.transform='translate3d(0,'+((j-gp)*28)+'px,0)'}
+    });
+    var row=clamp(Math.round(q),0,STEPS-1);
+    if(row!==lastRow){
+      lastRow=row;
+      rows.forEach(function(b,k){b.classList.toggle('on',k===row);if(k===row)b.setAttribute('aria-current','true');else b.removeAttribute('aria-current')});
+    }
+    if(idx!==lastSpec){lastSpec=idx;count.textContent=pad(idx+1)+' / '+pad(NS)}
   }
   function queue(){if(!ticking){ticking=true;requestAnimationFrame(render)}}
   addEventListener('scroll',queue,{passive:true});
